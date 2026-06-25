@@ -68,7 +68,34 @@ export default function OmeTV() {
 
     function createPeerConnection() {
         cleanupPeer()
-        const pc = new RTCPeerConnection()
+        const pc = new RTCPeerConnection({
+             iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+      {
+        urls: "stun:stun.relay.metered.ca:80",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80",
+        username: "0e7fe5b1308e37408258d04e",
+        credential: "aQA4dJ1X4pt9MCAe",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "0e7fe5b1308e37408258d04e",
+        credential: "aQA4dJ1X4pt9MCAe",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "0e7fe5b1308e37408258d04e",
+        credential: "aQA4dJ1X4pt9MCAe",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "0e7fe5b1308e37408258d04e",
+        credential: "aQA4dJ1X4pt9MCAe",
+      },
+  ],
+        })
         pcRef.current = pc
 
         pc.onicecandidate = (e) => {
