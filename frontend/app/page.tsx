@@ -13,7 +13,7 @@ export default function OmeTV() {
     const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
     useEffect(() => {
-        const socket = new WebSocket('ws://localhost:8080')
+        const socket = new WebSocket('wss://omega-rc0t.onrender.com')
         socketRef.current = socket
 
         socket.onmessage = async (event: any) => {
