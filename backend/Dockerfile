@@ -10,6 +10,6 @@ CMD ["npm", "run", "dev"]
 
 FROM base AS prod
 COPY . .
-RUN npm build
+RUN npm run build
 EXPOSE 8080
 CMD ["node" , "dist/index.js"]
