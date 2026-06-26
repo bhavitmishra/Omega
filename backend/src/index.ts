@@ -30,15 +30,16 @@ function matchUsers() {
 
 function disconnectFromPartner(user: User) {
     if (user.partner) {
-        user.partner.socket.send(JSON.stringify({ type: 'partner_left' }))
-        user.partner.partner = null
-        user.partner.role = null
-        // put partner back in queue
-        waitingQueue.push(user.partner)
-        user.partner.socket.send(JSON.stringify({ type: 'waiting' }))
+        const partner = user.partner  
+        user.partner = null  
+        
+        partner.socket.send(JSON.stringify({ type: 'partner_left' }))
+        partner.partner = null
+        partner.role = null
+        waitingQueue.push(partner)
+        partner.socket.send(JSON.stringify({ type: 'waiting' }))
         matchUsers()
     }
-    user.partner = null
     user.role = null
 }
 
