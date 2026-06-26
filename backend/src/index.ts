@@ -38,7 +38,6 @@ function disconnectFromPartner(user: User) {
         partner.role = null
         waitingQueue.push(partner)
         partner.socket.send(JSON.stringify({ type: 'waiting' }))
-        matchUsers()
     }
     user.role = null
 }
@@ -87,6 +86,7 @@ server.on('connection', (socket) => {
     socket.on('close', () => {
         console.log("User disconnected")
         disconnectFromPartner(user)
+        matchUsers();
         // remove from queue if still waiting
         const idx = waitingQueue.indexOf(user)
         if (idx !== -1) waitingQueue.splice(idx, 1)
