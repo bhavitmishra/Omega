@@ -16,6 +16,12 @@ function matchUsers() {
         const user1 = waitingQueue.shift()!
         const user2 = waitingQueue.shift()!
 
+         if (user1.socket === user2.socket) {
+            waitingQueue.unshift(user2)
+            continue
+        }
+
+
         user1.partner = user2
         user2.partner = user1
         user1.role = 'sender'
