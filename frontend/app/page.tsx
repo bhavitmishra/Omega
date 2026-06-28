@@ -188,7 +188,7 @@ useEffect(() => {
     if (status === 'idle') {
         return (
             <div className="h-dvh w-full bg-black flex flex-col items-center justify-center gap-3">
-                <h1 className="text-4xl font-bold text-white tracking-tight">omega</h1>
+                <h1 className="text-4xl font-bold text-white tracking-tight">Vynkk 😉</h1>
                 <p className="text-sm text-white/30 mb-6">Anonymous video chat
 
 No signup required.</p>
