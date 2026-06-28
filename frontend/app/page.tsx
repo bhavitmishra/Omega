@@ -234,7 +234,7 @@ Press Space for Next
                         autoPlay
                         playsInline
                         muted={muted}
-                        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 [transform:scaleX(-1)]"
                     />
                     <span className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-widest text-white/40 bg-black/40 backdrop-blur px-2 py-1 rounded">
                         Stranger
