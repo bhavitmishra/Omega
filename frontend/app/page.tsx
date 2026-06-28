@@ -6,12 +6,30 @@ type Status = 'idle' | 'waiting' | 'connected'
 export default function OmeTV() {
     const [status, setStatus] = useState<Status>('idle')
     const [muted, setMuted] = useState(true)
+    const [seconds, setSeconds] = useState(0)
     const socketRef = useRef<WebSocket | null>(null)
     const pcRef = useRef<RTCPeerConnection | null>(null)
     const localStreamRef = useRef<MediaStream | null>(null)
     const localVideoRef = useRef<HTMLVideoElement>(null)
     const remoteVideoRef = useRef<HTMLVideoElement>(null)
+    const [waitingIndex, setWaitingIndex] = useState(0)
+    const [cooldown, setCooldown] = useState(false)
+    const waitingMessages = [
+    "Finding someone...",
+    "Looking around...",
+    "Searching nearby...",
+    "Almost there...",
+    "Connecting..."
+]
+useEffect(() => {
+    if (status !== "waiting") return
 
+    const interval = setInterval(() => {
+        setWaitingIndex((i) => (i + 1) % waitingMessages.length)
+    }, 2200)
+
+    return () => clearInterval(interval)
+}, [status])
     // add this effect
 useEffect(() => {
     if (status === 'waiting' || status === 'connected') {
@@ -22,6 +40,18 @@ useEffect(() => {
     }
 }, [status])
 
+useEffect(() => {
+    if (status !== "connected") {
+        setSeconds(0)
+        return
+    }
+
+    const interval = setInterval(() => {
+        setSeconds((s) => s + 1)
+    }, 1000)
+
+    return () => clearInterval(interval)
+}, [status])
     useEffect(() => {
         const socket = new WebSocket('wss://omega-rc0t.onrender.com')
         socketRef.current = socket
@@ -74,6 +104,18 @@ useEffect(() => {
         return () => socket.close()
     }, [])
 
+    useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+        if (e.code === "Space" && status === "connected") {
+            e.preventDefault()
+            next()
+        }
+    }
+
+    window.addEventListener("keydown", handler)
+
+    return () => window.removeEventListener("keydown", handler)
+}, [status])
     function createPeerConnection() {
         cleanupPeer()
         const pc = new RTCPeerConnection({
@@ -127,23 +169,38 @@ useEffect(() => {
         }
     }
 
-    const next = () => {
-        cleanupPeer()
-        socketRef.current?.send(JSON.stringify({ type: 'next' }))
-        setStatus('waiting')
-    }
+  const next = () => {
+    if (cooldown) return
+
+    setCooldown(true)
+
+    cleanupPeer()
+
+    socketRef.current?.send(JSON.stringify({
+        type: "next"
+    }))
+
+    setStatus("waiting")
+
+    setTimeout(() => setCooldown(false), 1000)
+}
 
     if (status === 'idle') {
         return (
             <div className="h-dvh w-full bg-black flex flex-col items-center justify-center gap-3">
                 <h1 className="text-4xl font-bold text-white tracking-tight">omega</h1>
-                <p className="text-sm text-white/30 mb-6">Talk to strangers</p>
+                <p className="text-sm text-white/30 mb-6">Anonymous video chat
+
+No signup required.</p>
                 <button
                     onClick={startCamera}
                     className="bg-white text-black font-semibold text-base px-12 py-3 rounded-full active:scale-95 transition-transform"
                 >
                     Start
                 </button>
+                <p className="text-xs text-white/20 mt-8">
+Press Space for Next
+</p>
             </div>
         )
     }
@@ -161,25 +218,37 @@ useEffect(() => {
                         autoPlay
                         playsInline
                         muted
-                        className="absolute inset-0 w-full h-full object-cover [transform:scaleX(-1)]"
+                        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300 [transform:scaleX(-1)]"
                     />
                     <span className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-widest text-white/40 bg-black/40 backdrop-blur px-2 py-1 rounded">
                         You
                     </span>
                 </div>
 
+            
                 {/* remote */}
                 <div className="relative bg-black overflow-hidden">
+                    
                     <video
                         ref={remoteVideoRef}
                         autoPlay
                         playsInline
                         muted={muted}
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
                     />
                     <span className="absolute top-3 left-3 text-[10px] font-semibold uppercase tracking-widest text-white/40 bg-black/40 backdrop-blur px-2 py-1 rounded">
                         Stranger
                     </span>
+                    {status === "connected" && (
+    <span className="absolute top-3 right-3 text-xs bg-black/50 px-2 py-1 rounded text-white/70">
+        {Math.floor(seconds / 60)
+            .toString()
+            .padStart(2, "0")}
+        :
+        {(seconds % 60).toString().padStart(2, "0")}
+    </span>
+)}
+
 
                     {/* waiting overlay */}
                     {status === 'waiting' && (
@@ -193,9 +262,10 @@ useEffect(() => {
                                     />
                                 ))}
                             </div>
-                            <p className="text-xs text-white/30 tracking-widest uppercase">Finding someone</p>
+                            <p className="text-xs text-white/30 tracking-widest uppercase">{waitingMessages[waitingIndex]}</p>
                         </div>
                     )}
+                    
                 </div>
             </div>
 
@@ -211,7 +281,12 @@ useEffect(() => {
                 )}
                 <button
                     onClick={next}
-                    className="bg-neutral-900 border border-white/10 text-white font-semibold text-sm px-8 py-2.5 rounded-full active:scale-95 transition-transform"
+                    disabled={cooldown}
+                    className={`${
+cooldown
+? "opacity-50 cursor-not-allowed"
+: ""
+} bg-neutral-900 ...`}
                 >
                     Next
                 </button>
